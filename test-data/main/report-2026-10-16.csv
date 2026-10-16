@@ -1,0 +1,7 @@
+Key Encryption Number,Key Start Date,Asset Name,Key End Date,Address,Account Name,Key Memo,Sent Key,Asst. Phone,Subsidiary,Status,Customer Contact
+FAKE-ENC-0001,01/01/2026,TEST001,20/10/2026,רחוב בדיקה 1 תל אביב,לקוח בדיקה א,,FAKE-KEY-0001,feature not included,Nova,Active,TEST-CONTACT-A
+FAKE-ENC-0002,01/01/2026,TEST002,17/10/2026,רחוב בדיקה 2 חיפה,לקוח בדיקה ב,,FAKE-KEY-0002,feature not included,Nova,Active,TEST-CONTACT-B
+FAKE-ENC-0003,01/01/2026,TEST003,25/10/2026,רחוב בדיקה 3 ירושלים,לקוח בדיקה ג,,FAKE-KEY-0003,feature not included,Nova,Active,TEST-CONTACT-C
+FAKE-ENC-0004,01/01/2026,TEST004,20/10/2026,רחוב בדיקה 4 באר שבע,לקוח בדיקה ד,"ידיות תחזוקה לא לפתוח. כאשר ידיות חוזרות מתיקון יש לפתוח מכשיר לצמיתות",FAKE-KEY-0004,feature not included,Nova,Active,TEST-CONTACT-D
+FAKE-ENC-0005,01/01/2026,TEST005,31/02/2026,רחוב בדיקה 5 אשדוד,לקוח בדיקה ה,,FAKE-KEY-0005,feature not included,Nova,Active,TEST-CONTACT-E
+FAKE-ENC-0006,01/01/2026,TEST006,20/10/2026,רחוב בדיקה 6 נתניה,לקוח בדיקה ו,,FAKE-KEY-0006,feature not included,Nova,Active,
