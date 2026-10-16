@@ -1,0 +1,6 @@
+.rehearsal-ids.json
+transcripts/
+claude-lock.json.bak
+__pycache__/
+SKILL.md
+*.pdf

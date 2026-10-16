@@ -4,10 +4,8 @@ config:
   networking:
     type: limited
     allowed_hosts:
-      - www.googleapis.com        # Drive: read the daily report file
-      - sheets.googleapis.com     # Sheets: log + tasks
-      - gmail.googleapis.com      # Gmail: case email to cx.il@almalasers.com
-      # - <customer-channel-host> # [TBD] add when the messaging channel is chosen
-    allow_mcp_servers: true       # agent declares Google connectors as MCP servers
-    allow_package_managers: false # no packages needed; bash is disabled
+      - eu2.make.com                # Make MCP server (Drive, Sheets and Gmail go through Make)
+      # - <customer-channel-host>   # [TBD] only if the customer channel is called from the sandbox
+    allow_mcp_servers: false        # MCP host must be listed above; stricter than allowing any
+    allow_package_managers: false   # no packages needed; bash is disabled
   # packages: none

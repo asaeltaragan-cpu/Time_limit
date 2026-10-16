@@ -13,9 +13,16 @@ Claude Managed Agent that manages pre-lock payment notices for Alma Lasers devic
 
 | Path | Purpose |
 |---|---|
-| `agent.md` | Agent definition: model, tool policy, system prompt |
-| `environment.yaml` | Cloud environment with limited networking |
+| `agent.md` | Agent definition: model, tool allow-list, system prompt |
+| `environment.yaml` | Cloud environment with limited networking (only `eu2.make.com`) |
 | `test-data/` | Fictitious CSVs for the rehearsal session |
+| `run_rehearsal.py` | Runs a rehearsal session: dry run (data inline) or `--live` (real Make tool, test data) |
+| `setup_vault.py` | Creates the vault and stores the Make MCP token (read from an env var, never printed) |
+| `list_make_tools.py` | Lists the tool names a Make MCP token exposes, to check its scope |
+
+## How it connects
+
+The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes six fixed actions: `find_report`, `read_file`, `read_sheet`, `append_row`, `send_case_email`, `send_alert`. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
 
 ### `test-data/`
 
@@ -48,10 +55,13 @@ Suspected abuse threshold (assumption, to be tuned): 3 or more grace extensions 
 
 ## Status
 
-Rehearsal not yet run. Open items:
+Rehearsal in progress, on test data only. Passed live: normal path, bad data, duplicate protection. Dry run only so far: empty and stale report, customer replies and injection, abuse pattern.
 
-- Customer messaging channel and contact columns in the report
+Open items:
+
+- Customer messaging channel and contact columns in the report (until then notices are logged as `would-send`)
 - How the daily report reaches Drive
-- Wiring Google Drive, Sheets, and Gmail to the agent through MCP and a vault
+- Before go-live: point the case email at `cx.il@almalasers.com` in Make, replace the test folders/sheets with production ones, and narrow Make exposure (the token can run any active scenario)
 - Date format assumed DD/MM/YYYY
 - Message templates (T-4 and T-1)
+- Scheduled deployment and monitoring
