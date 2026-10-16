@@ -1,56 +1,56 @@
-# ארכיטקטורה – Time_limit (lock-notice-handler)
+# Architecture – Time_limit (lock-notice-handler)
 
-מסמך זה מתאר את מבנה המערכת, מה מפעיל את הסוכן, מה הוא מוציא, ואיך המידע זורם. הוא מבוסס על הקבצים בריפו ([agent.md](agent.md), [environment.yaml](environment.yaml), סקריפטים). מה שעדיין לא קיים מסומן **[טרם]** ולא מוצג כאילו קיים.
+This document describes the system structure, what triggers the agent, what it outputs, and how data flows. It is based on the files in the repo ([agent.md](agent.md), [environment.yaml](environment.yaml), the scripts). Anything that does not exist yet is marked **[TBD]** and is not shown as if it were built.
 
-## 1. תמונת מצב
+## 1. Overview
 
-המערכת היא סוכן Claude Managed Agent אחד. הוא קורא דוח יומי מ-Salesforce, שולח (בעתיד) התראות לפני נעילת מכשיר, רושם תשובות לקוחות, פותח משימות, ומסמן חשד לניצול לרעה של קודי שחרור. הסוכן לא מחליט על שחרור ולא נותן קודים.
+The system is a single Claude Managed Agent. It reads a daily Salesforce report, (in future) sends pre-lock notices to customers, logs customer replies, opens tasks, and flags suspected unlock-code abuse. The agent never decides to unlock a device and never gives unlock codes.
 
-| רכיב | מה זה בפועל | סטטוס |
+| Component | What it is in practice | Status |
 |---|---|---|
-| מקור נתונים | דוח CSV יומי מ-Salesforce בתיקיית Google Drive | קיים בבדיקות (נתוני דמה). איך הדוח מגיע ל-Drive: **[טרם]** |
-| סוכן | `lock-notice-handler`, מודל `claude-sonnet-5-5`, הוראות ב-[agent.md](agent.md) | קיים |
-| סביבת הרצה | ענן, רשת מוגבלת ל-`eu2.make.com` בלבד ([environment.yaml](environment.yaml)) | קיים |
-| שכבת פעולות | תרחיש Make אחד, "Lock agent - actions" (id 9987083), שש פעולות קבועות | קיים |
-| בסיס נתונים | שלושה גיליונות Google Sheets: **Log**, **Tasks**, **History** | קיים (גיליונות בדיקה) |
-| מייל | מייל בקשת Case לתור Salesforce ייעודי; התראות למפעילים | קיים (תיבת בדיקה) |
-| הודעה ללקוח | ערוץ שליחה ללקוח | **[טרם]** – כרגע נרשם `would-send` בלבד |
-| דשבורד | אין. אין בריפו קוד או הגדרה של דשבורד | **[טרם]** – ראו סעיף 7 |
-| Vault | מחזיק את טוקן ה-Make (`static_bearer`), לא בריפו | קיים ([setup_vault.py](setup_vault.py)) |
+| Data source | Daily Salesforce CSV report in a Google Drive folder | Exists in rehearsal (fictitious data). How the report reaches Drive: **[TBD]** |
+| Agent | `lock-notice-handler`, model `claude-sonnet-5-5`, instructions in [agent.md](agent.md) | Exists |
+| Runtime environment | Cloud, network limited to `eu2.make.com` only ([environment.yaml](environment.yaml)) | Exists |
+| Action layer | One Make scenario, "Lock agent - actions" (id 9987083), six fixed actions | Exists |
+| Database | Three Google Sheets: **Log**, **Tasks**, **History** | Exists (test sheets) |
+| Email | Case-request email to a dedicated Salesforce queue; alerts to operators | Exists (test mailbox) |
+| Customer message | Channel for sending to the customer | **[TBD]** – only `would-send` is logged for now |
+| Dashboard | None. No dashboard code or config in the repo | **[TBD]** – see section 7 |
+| Vault | Holds the Make token (`static_bearer`), never in the repo | Exists ([setup_vault.py](setup_vault.py)) |
 
-## 2. דיאגרמת רכיבים
+## 2. Component diagram
 
 ```mermaid
 flowchart LR
-    SF[("Salesforce<br/>דוח יומי")]
-    DRIVE[/"Google Drive<br/>תיקיית דוחות (CSV)"/]
-    TRIG(["טריגר<br/>(ראו סעיף 3)"])
+    SF[("Salesforce<br/>daily report")]
+    DRIVE[/"Google Drive<br/>report folder (CSV)"/]
+    TRIG(["Trigger<br/>(see section 3)"])
 
-    subgraph ANTH["Claude Platform (ענן, רשת מוגבלת)"]
-        AGENT["סוכן lock-notice-handler<br/>agent.md"]
-        VAULT[("Vault<br/>טוקן Make")]
-        MEM[("Memory (אופציונלי)<br/>last-run.md / lessons.md")]
+    subgraph ANTH["Claude Platform (cloud, limited network)"]
+        AGENT["Agent lock-notice-handler<br/>agent.md"]
+        VAULT[("Vault<br/>Make token")]
+        MEM[("Memory (optional)<br/>last-run.md / lessons.md")]
     end
 
     subgraph MAKE["Make.com – eu2.make.com/mcp"]
-        SCN["תרחיש 'Lock agent - actions'<br/>9987083<br/>6 פעולות קבועות"]
+        SCN["Scenario 'Lock agent - actions'<br/>9987083<br/>6 fixed actions"]
     end
 
-    subgraph DB["בסיס נתונים – Google Sheets"]
+    subgraph DB["Database – Google Sheets"]
         LOG[("Log")]
         TASKS[("Tasks")]
         HIST[("History")]
     end
 
-    MAIL["מייל Case<br/>תור Salesforce"]
-    ALERT["מייל התראה<br/>(דוח ישן / ריק)"]
-    CUST["הודעה ללקוח<br/>[טרם]"]
-    HUMAN(["נציג אנושי<br/>בדיקה וטיפול"])
+    MAIL["Case email<br/>Salesforce queue"]
+    ALERT["Alert email<br/>(stale / empty report)"]
+    CUST["Customer message<br/>[TBD]"]
+    HUMAN(["Human representative<br/>review and handling"])
 
-    SF -- "ייצוא יומי [טרם]" --> DRIVE
+    SF -- "daily export [TBD]" --> DRIVE
     TRIG --> AGENT
-    VAULT -. "טוקן" .-> AGENT
-    AGENT <-. "קריאה/כתיבה" .-> MEM
+    VAULT -. "token" .-> AGENT
+    AGENT <-. "read/write" .-> MEM
     AGENT -- "scenarios_run" --> SCN
     SCN -- "find_report / read_file" --> DRIVE
     SCN -- "read_sheet / append_row" --> LOG
@@ -58,106 +58,106 @@ flowchart LR
     SCN --> HIST
     SCN -- "send_case_email" --> MAIL
     SCN -- "send_alert" --> ALERT
-    AGENT -. "[טרם] אין כלי" .-> CUST
+    AGENT -. "[TBD] no tool" .-> CUST
     TASKS --> HUMAN
     MAIL --> HUMAN
     ALERT --> HUMAN
 ```
 
-עקרון אבטחה מרכזי: לסוכן יש כלי אחד בלבד (`scenarios_run`) ו-`read` של קבצים. נמענים, תיקיות וגיליונות מותרים קבועים בתוך Make, כך שהסוכן מעביר ערכי שדות בלבד.
+Key security principle: the agent has exactly one tool (`scenarios_run`) plus file `read`. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values.
 
-## 3. טריגר: מה גורם לסוכן לרוץ
+## 3. Trigger: what makes the agent run
 
-**מצב נוכחי (חזרות):** הרצה ידנית.
+**Current state (rehearsal):** manual run.
 
 ```mermaid
 flowchart LR
-    DEV(["מפתח"]) -->|"python run_rehearsal.py<br/>[--live] [--case ...]"| SESS["יצירת Session<br/>+ אירוע user.message"]
-    SESS --> AGENT["הסוכן רץ"]
+    DEV(["Developer"]) -->|"python run_rehearsal.py<br/>[--live] [--case ...]"| SESS["Create Session<br/>+ user.message event"]
+    SESS --> AGENT["Agent runs"]
 ```
 
-הסקריפט [run_rehearsal.py](run_rehearsal.py) יוצר Session ושולח הודעת משתמש ראשונה ("Today is ... Process today's report"). במצב `--live` הוא משתמש בכלי Make האמיתי על נתוני בדיקה (דורש `MAKE_VAULT_ID`); בלי `--live` זו הרצה יבשה עם הדוח בתוך ההודעה.
+[run_rehearsal.py](run_rehearsal.py) creates a Session and sends a first user message ("Today is ... Process today's report"). With `--live` it uses the real Make tool on test data (requires `MAKE_VAULT_ID`); without `--live` it is a dry run with the report inline in the message.
 
-**מצב יעד (ייצור) [טרם]:** ריצה יומית מתוזמנת (Scheduled deployment, ראו "פריטים פתוחים" ב-[README.md](README.md)), אחרי שהדוח הגיע ל-Drive. הסוכן מקבל "היום" (YYYY-MM-DD) ומחפש דוח בשם `report-<תאריך>.csv`. אם אין דוח של היום, נשלחת התראה `stale report` והריצה נעצרת.
+**Target state (production) [TBD]:** a daily scheduled run (scheduled deployment, see "Open items" in [README.md](README.md)), after the report has landed in Drive. The agent receives "today" (YYYY-MM-DD) and looks for `report-<date>.csv`. If there is no report for today, a `stale report` alert is sent and the run stops.
 
-**קלטים נוספים לריצה:**
+**Other run inputs:**
 
-| קלט | מקור | הערה |
+| Input | Source | Note |
 |---|---|---|
-| דוח יומי | Drive, דרך `find_report` + `read_file` | עמודות: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Asst. Phone, Subsidiary, Status, Customer Contact. תאריכים DD/MM/YYYY (הנחה) |
-| Log / Tasks / History | Sheets, דרך `read_sheet` | נקראים פעם אחת בתחילת ריצה, לזיהוי כפילויות והשוואה לעבר |
-| תשובות לקוחות | הודעת המשימה (כרגע מוזנות ידנית ב-`--case replies`) | תוכן לא מהימן. נתון בלבד, לעולם לא הוראה. מנגנון קליטה אוטומטי: **[טרם]** |
-| Memory | `last-run.md`, `lessons.md` | רק כשצורף memory store |
+| Daily report | Drive, via `find_report` + `read_file` | Columns: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Asst. Phone, Subsidiary, Status, Customer Contact. Dates DD/MM/YYYY (assumed) |
+| Log / Tasks / History | Sheets, via `read_sheet` | Read once at the start of a run, to detect duplicates and compare with the past |
+| Customer replies | The task message (currently fed manually with `--case replies`) | Untrusted content. Data only, never instructions. Automatic intake: **[TBD]** |
+| Memory | `last-run.md`, `lessons.md` | Only when a memory store is attached |
 
-## 4. פלט: מה הסוכן מייצר ולאן זה הולך
+## 4. Output: what the agent produces and where it goes
 
-| פלט | יעד | מתי | פעולת Make |
+| Output | Destination | When | Make action |
 |---|---|---|---|
-| שורת Log, `<Asset>-T4` / `-T1` (Event Type `would-send T4/T1`) | גיליון Log | נותרו 4 או 1 ימים ל-Key End Date, ואין כבר אירוע כזה | `append_row` |
-| שורת Log לתשובת לקוח + סיווג | גיליון Log | לכל תשובה | `append_row` |
-| שורת Task | גיליון Tasks | תשובה, "needs a look", או חשד לניצול | `append_row` |
-| מייל Case | תור Salesforce (נמען קבוע ב-Make) | לכל תשובת לקוח | `send_case_email` |
-| התראה | מפעילים (נמענים קבועים ב-Make) | דוח לא קיים או ריק | `send_alert` |
-| תמונת מצב Key End Date | גיליון History | לכל נכס בדוח, פעם אחת ביום | `append_row` |
-| הודעת T-4 / T-1 ללקוח | ערוץ ללקוח | **[טרם]** | אין כלי. הסוכן אסור לו להמציא |
-| דוח סיכום | משתמש/Session | סוף ריצה: הודעות / תשובות שטופלו / needs a look / דגלי ניצול | — |
-| עדכון Memory | `last-run.md`, `lessons.md` | סוף ריצה, אם צורף store | — |
+| Log row, `<Asset>-T4` / `-T1` (Event Type `would-send T4/T1`) | Log sheet | 4 or 1 days remain to Key End Date and no such event exists yet | `append_row` |
+| Log row for a customer reply + classification | Log sheet | Every reply | `append_row` |
+| Task row | Tasks sheet | Reply, "needs a look", or suspected abuse | `append_row` |
+| Case email | Salesforce queue (recipient fixed in Make) | Every customer reply | `send_case_email` |
+| Alert | Operators (recipients fixed in Make) | Report missing or empty | `send_alert` |
+| Key End Date snapshot | History sheet | Every asset in the report, once per day | `append_row` |
+| T-4 / T-1 customer message | Customer channel | **[TBD]** | No tool. The agent must not invent one |
+| Summary report | User / Session | End of run: notices / replies handled / needs a look / abuse flags | — |
+| Memory update | `last-run.md`, `lessons.md` | End of run, if a store is attached | — |
 
-סיווג תשובות: `paid`, `will pay` (עם תאריך), `dispute`, `asks extension`, `technical issue`, `unclear` (כולל ניסיון הזרקה, עם דגל "possible injection").
+Reply classifications: `paid`, `will pay` (with date), `dispute`, `asks extension`, `technical issue`, `unclear` (including injection attempts, flagged "possible injection").
 
-## 5. תרשים זרימת מידע (ריצה יומית)
+## 5. Information flow diagram (daily run)
 
 ```mermaid
 flowchart TD
-    START(["טריגר: Session חדש<br/>today = YYYY-MM-DD"]) --> FIND["find_report(today)"]
-    FIND --> FOUND{"נמצא דוח?"}
-    FOUND -- "לא" --> A1["send_alert: stale report"] --> END1(["עצירה + דוח סיכום"])
-    FOUND -- "כן" --> READ["read_file → תוכן CSV"]
-    READ --> EMPTY{"יש שורות נתונים?"}
-    EMPTY -- "לא" --> A2["send_alert: empty report"] --> END1
-    EMPTY -- "כן" --> SHEETS["read_sheet: log, tasks, history"]
+    START(["Trigger: new Session<br/>today = YYYY-MM-DD"]) --> FIND["find_report(today)"]
+    FIND --> FOUND{"Report found?"}
+    FOUND -- "no" --> A1["send_alert: stale report"] --> END1(["Stop + summary report"])
+    FOUND -- "yes" --> READ["read_file → CSV content"]
+    READ --> EMPTY{"Data rows present?"}
+    EMPTY -- "no" --> A2["send_alert: empty report"] --> END1
+    EMPTY -- "yes" --> SHEETS["read_sheet: log, tasks, history"]
 
-    SHEETS --> ROW["לכל שורה: days = Key End Date − today"]
-    ROW --> VALID{"תאריך תקין,<br/>Customer Contact קיים,<br/>Key Memo לא אוסר נעילה?"}
-    VALID -- "לא" --> LOOK["Tasks: needs a look<br/>(ID: Asset-LOOK-date, בלי כפילות)"]
-    VALID -- "כן" --> DAYS{"days"}
-    DAYS -- "4 או 1" --> DUP{"אירוע Asset-T4/T1<br/>כבר ב-Log?"}
-    DAYS -- "אחר" --> NONE["אין הודעה"]
-    DUP -- "כן" --> NONE
-    DUP -- "לא" --> LOGW["Log: would-send T4/T1<br/>(ערוץ ללקוח [טרם])"]
+    SHEETS --> ROW["Per row: days = Key End Date − today"]
+    ROW --> VALID{"Valid date,<br/>Customer Contact present,<br/>Key Memo does not forbid locking?"}
+    VALID -- "no" --> LOOK["Tasks: needs a look<br/>(ID: Asset-LOOK-date, no duplicates)"]
+    VALID -- "yes" --> DAYS{"days"}
+    DAYS -- "4 or 1" --> DUP{"Event Asset-T4/T1<br/>already in Log?"}
+    DAYS -- "other" --> NONE["No notice"]
+    DUP -- "yes" --> NONE
+    DUP -- "no" --> LOGW["Log: would-send T4/T1<br/>(customer channel [TBD])"]
 
-    REPLIES["תשובות לקוחות<br/>(תוכן לא מהימן)"] --> CLS["סיווג"]
-    CLS --> LOGR["Log: reply + סיווג"]
-    LOGR --> TASKR["Tasks: משימה"]
-    TASKR --> CASE["send_case_email → תור Salesforce"]
+    REPLIES["Customer replies<br/>(untrusted content)"] --> CLS["Classify"]
+    CLS --> LOGR["Log: reply + classification"]
+    LOGR --> TASKR["Tasks: task"]
+    TASKR --> CASE["send_case_email → Salesforce queue"]
 
-    ROW --> CMP["השוואת Key End Date מול History"]
-    CMP --> KIND{"שינוי"}
-    KIND -- "+1..7 ימים" --> GRACE["grace extension"]
-    KIND -- "+80..100 ימים" --> RENEW["payment renewal:<br/>מאפס ספירה, סוגר משימות פתוחות"]
-    KIND -- "אחר" --> LOOK
-    GRACE --> HISTW["History: שורת היום לכל נכס"]
+    ROW --> CMP["Compare Key End Date with History"]
+    CMP --> KIND{"Change"}
+    KIND -- "+1..7 days" --> GRACE["grace extension"]
+    KIND -- "+80..100 days" --> RENEW["payment renewal:<br/>resets count, closes open tasks"]
+    KIND -- "other" --> LOOK
+    GRACE --> HISTW["History: today's row per asset"]
     RENEW --> HISTW
-    GRACE --> ABUSE{"3+ grace<br/>ב-60 יום?"}
-    ABUSE -- "כן" --> FLAG["Tasks: Flag 'suspected unlock-code abuse'<br/>(חשד, לא עובדה)"]
+    GRACE --> ABUSE{"3+ grace<br/>within 60 days?"}
+    ABUSE -- "yes" --> FLAG["Tasks: Flag 'suspected unlock-code abuse'<br/>(suspicion, not fact)"]
 
     LOOK --> REPORT
     LOGW --> REPORT
     CASE --> REPORT
     FLAG --> REPORT
-    HISTW --> REPORT["דוח סיכום"]
-    REPORT --> MEMW["עדכון Memory (אם קיים)"]
-    REPORT --> HUMAN(["נציג אנושי עובר על Tasks, Case ו-Alert"])
+    HISTW --> REPORT["Summary report"]
+    REPORT --> MEMW["Update Memory (if attached)"]
+    REPORT --> HUMAN(["Human representative reviews Tasks, Case and Alert"])
 ```
 
-## 6. מודל נתונים (בסיס הנתונים)
+## 6. Data model (database)
 
-אין בסיס נתונים רגיל. הנתונים נשמרים בשלושה גיליונות Google Sheets, בכתיבת טקסט פשוט, דרך Make בלבד.
+There is no conventional database. Data lives in three Google Sheets, written as plain text, through Make only.
 
 ```mermaid
 erDiagram
     LOG {
-        string EventID "Asset-T4 / Asset-T1 (מפתח למניעת כפילות)"
+        string EventID "Asset-T4 / Asset-T1 (duplicate-prevention key)"
         string DateTime
         string AssetName
         string AccountName
@@ -167,7 +167,7 @@ erDiagram
         string CaseEmailSent
     }
     TASKS {
-        string TaskID "Asset-LOOK-date (מניעת כפילות)"
+        string TaskID "Asset-LOOK-date (duplicate prevention)"
         string Date
         string AssetName
         string AccountName
@@ -181,40 +181,40 @@ erDiagram
         string AssetName
         string KeyEndDate
     }
-    LOG }o--o{ TASKS : "אותו Asset / Account"
-    HISTORY }o--o{ TASKS : "אותו Asset (בסיס לדגל ניצול)"
+    LOG }o--o{ TASKS : "same Asset / Account"
+    HISTORY }o--o{ TASKS : "same Asset (basis for abuse flag)"
 ```
 
-הקשרים הם לפי `Asset Name` בלבד (אין מפתחות זרים אמיתיים). העמודות `Key Encryption Number` ו-`Sent Key` לעולם לא נכתבות לשום מקום.
+Relations are by `Asset Name` only (there are no real foreign keys). The columns `Key Encryption Number` and `Sent Key` are never written anywhere.
 
-## 7. דשבורד
+## 7. Dashboard
 
-אין דשבורד בריפו ואין הגדרה שלו. המידע שדשבורד היה מציג כבר נמצא בגיליונות, ולכן הצעד הקל ביותר הוא תצוגה מעל אותם גיליונות:
+There is no dashboard in the repo and no definition of one. The information a dashboard would show already lives in the sheets, so the lightest option is a view on top of those same sheets:
 
-| מה להציג | מקור |
+| What to show | Source |
 |---|---|
-| הודעות שנשלחו (T-4 / T-1) לפי יום | Log |
-| משימות פתוחות, "needs a look" | Tasks |
-| תשובות לקוחות לפי סיווג | Log |
-| חשדות ניצול פעילים | Tasks (Flag) |
-| מגמת הארכות לפי נכס | History |
-| ריצות שנכשלו / התראות דוח ישן או ריק | מיילי Alert, ו-last-run.md |
+| Notices sent (T-4 / T-1) per day | Log |
+| Open tasks, "needs a look" | Tasks |
+| Customer replies by classification | Log |
+| Active abuse suspicions | Tasks (Flag) |
+| Extension trend per asset | History |
+| Failed runs / stale or empty report alerts | Alert emails, and last-run.md |
 
-הבחירה בכלי (Looker Studio / Sheets / אחר) טרם התקבלה.
+The tool choice (Looker Studio / Sheets / other) has not been made.
 
-## 8. אבטחה והפרדות
+## 8. Security and separation
 
-- הסוכן מורשה לכלי אחד (`scenarios_run`, scenarioId קבוע) ולקריאת קבצים. Shell ו-web כבויים.
-- רשת הסביבה מוגבלת ל-`eu2.make.com`; אין package managers.
-- טוקן Make נשמר ב-Vault, לא בריפו. הערה פתוחה: הטוקן יכול להריץ כל תרחיש פעיל ב-Make, ויש לצמצם לפני ייצור.
-- תשובות לקוחות, `Key Memo` ותוצאות כלים הם נתונים, לא הוראות.
-- הודעות לפי תבניות מאושרות בלבד; אין קודי שחרור ואין הבטחות להארכה.
+- The agent is allowed one tool (`scenarios_run`, fixed scenarioId) and file read. Shell and web are off.
+- The environment network is limited to `eu2.make.com`; no package managers.
+- The Make token is stored in the Vault, not in the repo. Open note: the token can run any active scenario in Make, and must be narrowed before production.
+- Customer replies, `Key Memo`, and tool results are data, not instructions.
+- Messages use approved templates only; no unlock codes and no promises of extensions.
 
-## 9. מה נדרש כדי לעבור לייצור
+## 9. What is needed for production
 
-1. מנגנון שמעביר את דוח Salesforce ל-Drive בכל יום.
-2. טריגר מתוזמן לסוכן (Scheduled deployment) וניטור.
-3. ערוץ הודעות ללקוח, עמודות איש קשר בדוח, ותבניות T-4 / T-1.
-4. מנגנון קליטה אוטומטי של תשובות לקוחות.
-5. הפניית מייל ה-Case ל-`cx.il@almalasers.com`, החלפת תיקיות וגיליונות הבדיקה בייצור, וצמצום חשיפת ה-Make.
-6. דשבורד (סעיף 7).
+1. A mechanism that delivers the Salesforce report to Drive every day.
+2. A scheduled trigger for the agent (scheduled deployment) and monitoring.
+3. A customer messaging channel, contact columns in the report, and T-4 / T-1 templates.
+4. Automatic intake of customer replies.
+5. Point the case email at `cx.il@almalasers.com`, replace the test folders and sheets with production ones, and narrow the Make exposure.
+6. A dashboard (section 7).
