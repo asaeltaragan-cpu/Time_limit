@@ -1,7 +1,7 @@
 """List the tool names that the Make MCP server exposes for your token (names only).
 
 Use it to check that the token is scoped to the one scenario "Lock agent - actions", and to
-get the exact tool name for the allow-list in agent.md. The token is read from the
+get the exact tool name for the allow-list in spec.md. The token is read from the
 MAKE_MCP_TOKEN environment variable and never printed.
 
     $env:MAKE_MCP_TOKEN = "..."

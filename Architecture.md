@@ -1,6 +1,6 @@
 # Architecture – Time_limit (lock-notice-handler)
 
-This document describes the system structure, what triggers the agent, what it outputs, and how data flows. It is based on the files in the repo ([agent.md](agent.md), [environment.yaml](environment.yaml), the scripts). Anything that does not exist yet is marked **[TBD]** and is not shown as if it were built.
+This document describes the system structure, what triggers the agent, what it outputs, and how data flows. It is based on the files in the repo ([spec.md](spec.md), [environment.yaml](environment.yaml), the scripts). Anything that does not exist yet is marked **[TBD]** and is not shown as if it were built.
 
 ## 1. Overview
 
@@ -9,7 +9,7 @@ The system is a single Claude Managed Agent. It reads a daily Salesforce report,
 | Component | What it is in practice | Status |
 |---|---|---|
 | Data source | Daily Salesforce CSV report in a Google Drive folder | Exists in rehearsal (fictitious data). How the report reaches Drive: **[TBD]** |
-| Agent | `lock-notice-handler`, model `claude-sonnet-5-5`, instructions in [agent.md](agent.md) | Exists |
+| Agent | `lock-notice-handler`, model `claude-sonnet-5-5`, instructions in [spec.md](spec.md) | Exists |
 | Runtime environment | Cloud, network limited to `eu2.make.com` only ([environment.yaml](environment.yaml)) | Exists |
 | Action layer | One Make scenario, "Lock agent - actions" (id 9987083), six fixed actions | Exists |
 | Database | Three Google Sheets: **Log**, **Tasks**, **History** | Exists (test sheets) |
@@ -27,7 +27,7 @@ flowchart LR
     TRIG(["Trigger<br/>(see section 3)"])
 
     subgraph ANTH["Claude Platform (cloud, limited network)"]
-        AGENT["Agent lock-notice-handler<br/>agent.md"]
+        AGENT["Agent lock-notice-handler<br/>spec.md"]
         VAULT[("Vault<br/>Make token")]
         MEM[("Memory (optional)<br/>last-run.md / lessons.md")]
     end

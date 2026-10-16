@@ -14,7 +14,7 @@ Claude Managed Agent that manages pre-lock payment notices for Alma Lasers devic
 | Path | Purpose |
 |---|---|
 | [`Architecture.md`](Architecture.md) | System diagrams: components, trigger, outputs, data flow, data model |
-| `agent.md` | Agent definition: model, tool allow-list, system prompt |
+| `spec.md` | Agent definition: model, tool allow-list, system prompt |
 | `environment.yaml` | Cloud environment with limited networking (only `eu2.make.com`) |
 | `test-data/` | Fictitious CSVs for the rehearsal session |
 | `run_rehearsal.py` | Runs a rehearsal session: dry run (data inline) or `--live` (real Make tool, test data) |

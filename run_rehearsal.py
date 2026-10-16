@@ -1,6 +1,6 @@
 """Smoke test for the lock-notice agent (dry run, no connectors).
 
-Creates the agent and environment from agent.md / environment settings (once, IDs are
+Creates the agent and environment from spec.md / environment settings (once, IDs are
 cached in .rehearsal-ids.json), opens a session, sends the test report inline as the
 first event, and prints the transcript. Nothing is sent to customers or written to
 Sheets: the agent is told to describe what it WOULD do.
@@ -13,7 +13,7 @@ Usage:
     python run_rehearsal.py --case stale --today 16/10/2026
     python run_rehearsal.py --case replies   # classification + injection test
     python run_rehearsal.py --case abuse     # History comparison + abuse flag
-    python run_rehearsal.py --new         # re-create agent/environment after editing agent.md
+    python run_rehearsal.py --new         # re-create agent/environment after editing spec.md
 """
 
 import argparse
@@ -56,7 +56,7 @@ ENVIRONMENT_CONFIG = {
     },
 }
 
-# Same as agent.md: only `read` is on; of the Make MCP tools only scenarios_run is on.
+# Same as spec.md: only `read` is on; of the Make MCP tools only scenarios_run is on.
 TOOLS = [
     {
         "type": "agent_toolset_20260401",
@@ -80,7 +80,7 @@ MCP_SERVERS = [{"type": "url", "name": "make", "url": "https://eu2.make.com/mcp"
 
 
 def load_agent_md():
-    text = (ROOT / "agent.md").read_text(encoding="utf-8")
+    text = (ROOT / "spec.md").read_text(encoding="utf-8")
     _, front, body = text.split("---", 2)
     name = re.search(r"^name:\s*(.+)$", front, re.M).group(1).strip()
     description = re.search(r"^description:\s*(.+)$", front, re.M).group(1).strip()
