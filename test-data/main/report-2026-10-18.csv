@@ -1,0 +1,4 @@
+Key Encryption Number,Key Start Date,Asset Name,Key End Date,Address,Account Name,Key Memo,Sent Key,Asst. Phone,Subsidiary,Status,Customer Contact
+FAKE-ENC-0201,01/01/2026,TEST201,22/10/2026,רחוב בדיקה 201 תל אביב,לקוחה בדיקה ש,,FAKE-KEY-0201,feature not included,Nova,Active,0501234567
+FAKE-ENC-0202,01/01/2026,TEST202,19/10/2026,רחוב בדיקה 202 חיפה,לקוחה בדיקה ת,,FAKE-KEY-0202,feature not included,Nova,Active,050-1234567
+FAKE-ENC-0204,01/01/2026,TEST204,22/10/2026,רחוב בדיקה 204 נתניה,לקוחה בדיקה ד,,FAKE-KEY-0204,feature not included,Nova,Active,12345
