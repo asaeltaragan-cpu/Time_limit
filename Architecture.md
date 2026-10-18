@@ -84,7 +84,7 @@ flowchart LR
 
 | Input | Source | Note |
 |---|---|---|
-| Daily report | Drive, via `find_report` + `read_file` | Columns: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Asst. Phone, Subsidiary, Status, Customer Contact. Dates DD/MM/YYYY (assumed) |
+| Daily report | Drive, via `find_report` + `read_file` | Columns: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Phone, Subsidiary. Dates DD/MM/YYYY |
 | Log / Tasks / History | Sheets, via `read_sheet` | Read once at the start of a run, to detect duplicates and compare with the past |
 | Customer replies | The task message (currently fed manually with `--case replies`); `read_replies` can pull the last 48h | Untrusted content. Data only, never instructions. Automatic intake: **[TBD]** |
 | Memory | `last-run.md`, `lessons.md` | Only when a memory store is attached |
@@ -118,7 +118,7 @@ flowchart TD
     EMPTY -- "yes" --> SHEETS["read_sheet: log, tasks, history"]
 
     SHEETS --> ROW["Per row: days = Key End Date − today"]
-    ROW --> VALID{"Valid date,<br/>Customer Contact present,<br/>Key Memo does not forbid locking?"}
+    ROW --> VALID{"Valid date,<br/>Phone usable,<br/>Key Memo does not forbid locking?"}
     VALID -- "no" --> LOOK["Tasks: needs a look<br/>(ID: Asset-LOOK-date, no duplicates)"]
     VALID -- "yes" --> DAYS{"days"}
     DAYS -- "4 or 1" --> DUP{"Event Asset-T4/T1<br/>already in Log?"}

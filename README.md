@@ -60,7 +60,7 @@ Rehearsal in progress, on test data only. Passed live: normal path, bad data, du
 
 Open items:
 
-- Which report column holds the customer phone, and removing the test-number lock in Make before go-live
+- Removing the test-number lock in Make before go-live
 - How the daily report reaches Drive
 - Before go-live: point the case email at `cx.il@almalasers.com` in Make, replace the test folders/sheets with production ones, and narrow Make exposure (the token can run any active scenario)
 - Date format assumed DD/MM/YYYY
