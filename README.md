@@ -23,7 +23,7 @@ Claude Managed Agent that manages pre-lock payment notices for Alma Lasers devic
 
 ## How it connects
 
-The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes six fixed actions: `find_report`, `read_file`, `read_sheet`, `append_row`, `send_case_email`, `send_alert`. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
+The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes nine fixed actions: `find_report`, `read_file`, `read_sheet`, `append_rows`, `send_case_email`, `send_alert`, `send_customer_message`, `read_replies`, `check_balance`. SMS goes through MultiSend; during rehearsal Make accepts only the owner's test number. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
 
 ### `test-data/`
 
@@ -60,7 +60,7 @@ Rehearsal in progress, on test data only. Passed live: normal path, bad data, du
 
 Open items:
 
-- Customer messaging channel and contact columns in the report (until then notices are logged as `would-send`)
+- Which report column holds the customer phone, and removing the test-number lock in Make before go-live
 - How the daily report reaches Drive
 - Before go-live: point the case email at `cx.il@almalasers.com` in Make, replace the test folders/sheets with production ones, and narrow Make exposure (the token can run any active scenario)
 - Date format assumed DD/MM/YYYY

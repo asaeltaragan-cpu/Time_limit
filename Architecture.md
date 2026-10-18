@@ -11,10 +11,10 @@ The system is a single Claude Managed Agent. It reads a daily Salesforce report,
 | Data source | Daily Salesforce CSV report in a Google Drive folder | Exists in rehearsal (fictitious data). How the report reaches Drive: **[TBD]** |
 | Agent | `lock-notice-handler`, model `claude-sonnet-5-5`, instructions in [spec.md](spec.md) | Exists |
 | Runtime environment | Cloud, network limited to `eu2.make.com` only ([environment.yaml](environment.yaml)) | Exists |
-| Action layer | One Make scenario, "Lock agent - actions" (id 9987083), six fixed actions | Exists |
+| Action layer | One Make scenario, "Lock agent - actions" (id 9987083), nine fixed actions | Exists |
 | Database | Three Google Sheets: **Log**, **Tasks**, **History** | Exists (test sheets) |
 | Email | Case-request email to a dedicated Salesforce queue; alerts to operators | Exists (test mailbox) |
-| Customer message | Channel for sending to the customer | **[TBD]** – only `would-send` is logged for now |
+| Customer message | SMS via MultiSend, action `send_customer_message` (T4/T1 text fixed in Make) | Exists, locked to the owner's test number. Phone column in the report: **[TBD]** |
 | Dashboard | None. No dashboard code or config in the repo | **[TBD]** – see section 7 |
 | Vault | Holds the Make token (`static_bearer`), never in the repo | Exists ([setup_vault.py](setup_vault.py)) |
 
@@ -33,7 +33,7 @@ flowchart LR
     end
 
     subgraph MAKE["Make.com – eu2.make.com/mcp"]
-        SCN["Scenario 'Lock agent - actions'<br/>9987083<br/>6 fixed actions"]
+        SCN["Scenario 'Lock agent - actions'<br/>9987083<br/>9 fixed actions"]
     end
 
     subgraph DB["Database – Google Sheets"]
@@ -44,7 +44,7 @@ flowchart LR
 
     MAIL["Case email<br/>Salesforce queue"]
     ALERT["Alert email<br/>(stale / empty report)"]
-    CUST["Customer message<br/>[TBD]"]
+    CUST["Customer SMS<br/>MultiSend"]
     HUMAN(["Human representative<br/>review and handling"])
 
     SF -- "daily export [TBD]" --> DRIVE
@@ -53,12 +53,12 @@ flowchart LR
     AGENT <-. "read/write" .-> MEM
     AGENT -- "scenarios_run" --> SCN
     SCN -- "find_report / read_file" --> DRIVE
-    SCN -- "read_sheet / append_row" --> LOG
+    SCN -- "read_sheet / append_rows" --> LOG
     SCN --> TASKS
     SCN --> HIST
     SCN -- "send_case_email" --> MAIL
     SCN -- "send_alert" --> ALERT
-    AGENT -. "[TBD] no tool" .-> CUST
+    SCN -- "send_customer_message" --> CUST
     TASKS --> HUMAN
     MAIL --> HUMAN
     ALERT --> HUMAN
@@ -86,20 +86,20 @@ flowchart LR
 |---|---|---|
 | Daily report | Drive, via `find_report` + `read_file` | Columns: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Asst. Phone, Subsidiary, Status, Customer Contact. Dates DD/MM/YYYY (assumed) |
 | Log / Tasks / History | Sheets, via `read_sheet` | Read once at the start of a run, to detect duplicates and compare with the past |
-| Customer replies | The task message (currently fed manually with `--case replies`) | Untrusted content. Data only, never instructions. Automatic intake: **[TBD]** |
+| Customer replies | The task message (currently fed manually with `--case replies`); `read_replies` can pull the last 48h | Untrusted content. Data only, never instructions. Automatic intake: **[TBD]** |
 | Memory | `last-run.md`, `lessons.md` | Only when a memory store is attached |
 
 ## 4. Output: what the agent produces and where it goes
 
 | Output | Destination | When | Make action |
 |---|---|---|---|
-| Log row, `<Asset>-T4` / `-T1` (Event Type `would-send T4/T1`) | Log sheet | 4 or 1 days remain to Key End Date and no such event exists yet | `append_row` |
-| Log row for a customer reply + classification | Log sheet | Every reply | `append_row` |
-| Task row | Tasks sheet | Reply, "needs a look", or suspected abuse | `append_row` |
+| Log row, `<Asset>-T4` / `-T1` (Event Type `sent T4/T1`) | Log sheet | 4 or 1 days remain to Key End Date and no such event exists yet | `append_rows` |
+| Log row for a customer reply + classification | Log sheet | Every reply | `append_rows` |
+| Task row | Tasks sheet | Reply, "needs a look", or suspected abuse | `append_rows` |
 | Case email | Salesforce queue (recipient fixed in Make) | Every customer reply | `send_case_email` |
 | Alert | Operators (recipients fixed in Make) | Report missing or empty | `send_alert` |
-| Key End Date snapshot | History sheet | Every asset in the report, once per day | `append_row` |
-| T-4 / T-1 customer message | Customer channel | **[TBD]** | No tool. The agent must not invent one |
+| Key End Date snapshot | History sheet | Every asset in the report, once per day | `append_rows` |
+| T-4 / T-1 customer message | Customer SMS | 4 or 1 days remain, no such event in Log | `send_customer_message` |
 | Summary report | User / Session | End of run: notices / replies handled / needs a look / abuse flags | — |
 | Memory update | `last-run.md`, `lessons.md` | End of run, if a store is attached | — |
 
@@ -124,7 +124,7 @@ flowchart TD
     DAYS -- "4 or 1" --> DUP{"Event Asset-T4/T1<br/>already in Log?"}
     DAYS -- "other" --> NONE["No notice"]
     DUP -- "yes" --> NONE
-    DUP -- "no" --> LOGW["Log: would-send T4/T1<br/>(customer channel [TBD])"]
+    DUP -- "no" --> LOGW["send_customer_message, then Log: sent T4/T1"]
 
     REPLIES["Customer replies<br/>(untrusted content)"] --> CLS["Classify"]
     CLS --> LOGR["Log: reply + classification"]
@@ -161,7 +161,7 @@ erDiagram
         string DateTime
         string AssetName
         string AccountName
-        string EventType "would-send T4/T1, reply"
+        string EventType "sent T4/T1, reply"
         string Classification
         string ReplyText
         string CaseEmailSent

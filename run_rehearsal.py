@@ -144,7 +144,7 @@ def build_live_event(case, today):
         f"TEST MODE. Today is {today}. Process today's report. When you call find_report, pass "
         f'folder_key set to the literal text "{folder_key}" (it is a name, never leave it out). '
         "All Sheets and the mailbox are test targets, so write for "
-        "real with your tool, but there is no customer channel, so use 'would-send' events."
+        "real with your tool. SMS is locked in Make to the owner's test number, so notices for other numbers will not be sent."
         f"{extra}"
     )
 
