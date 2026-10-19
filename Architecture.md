@@ -8,7 +8,7 @@ The system is a single Claude Managed Agent. It reads a daily Salesforce report,
 
 | Component | What it is in practice | Status |
 |---|---|---|
-| Data source | Daily Salesforce CSV report in a Google Drive folder | Exists in rehearsal (fictitious data). How the report reaches Drive: **[TBD]** |
+| Data source | Daily Salesforce report emailed to asael.almalasers@gmail.com (attachment searchresults, read via Make action read_report_email) | Exists in rehearsal (fictitious data). How the report reaches Drive: **[TBD]** |
 | Agent | `lock-notice-handler`, model `claude-sonnet-5-5`, instructions in [spec.md](spec.md) | Exists |
 | Runtime environment | Cloud, network limited to `eu2.make.com` only ([environment.yaml](environment.yaml)) | Exists |
 | Action layer | One Make scenario, "Lock agent - actions" (id 9987083), nine fixed actions | Exists |
