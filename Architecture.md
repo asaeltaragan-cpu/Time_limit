@@ -52,7 +52,7 @@ flowchart LR
     VAULT -. "token" .-> AGENT
     AGENT <-. "read/write" .-> MEM
     AGENT -- "scenarios_run" --> SCN
-    SCN -- "find_report / read_file" --> DRIVE
+    SCN -- "read_report_email / read_report_due" --> DRIVE
     SCN -- "read_sheet / append_rows" --> LOG
     SCN --> TASKS
     SCN --> HIST
@@ -84,7 +84,7 @@ flowchart LR
 
 | Input | Source | Note |
 |---|---|---|
-| Daily report | Drive, via `find_report` + `read_file` | Columns: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Phone, Subsidiary. Dates DD/MM/YYYY |
+| Daily report | Gmail (asael.almalasers@gmail.com), via `read_report_email` (full) and `read_report_due` (only 4/1-day rows) | Columns: Key Encryption Number, Key Start Date, Asset Name, Key End Date, Address, Account Name, Key Memo, Sent Key, Phone, Subsidiary. Dates DD/MM/YYYY |
 | Log / Tasks / History | Sheets, via `read_sheet` | Read once at the start of a run, to detect duplicates and compare with the past |
 | Customer replies | The task message (currently fed manually with `--case replies`); `read_replies` can pull the last 48h | Untrusted content. Data only, never instructions. Automatic intake: **[TBD]** |
 | Memory | `last-run.md`, `lessons.md` | Only when a memory store is attached |
@@ -109,10 +109,10 @@ Reply classifications: `paid`, `will pay` (with date), `dispute`, `asks extensio
 
 ```mermaid
 flowchart TD
-    START(["Trigger: new Session<br/>today = YYYY-MM-DD"]) --> FIND["find_report(today)"]
+    START(["Trigger: new Session<br/>today = YYYY-MM-DD"]) --> FIND["read_report_email / read_report_due"]
     FIND --> FOUND{"Report found?"}
     FOUND -- "no" --> A1["send_alert: stale report"] --> END1(["Stop + summary report"])
-    FOUND -- "yes" --> READ["read_file → CSV content"]
+    FOUND -- "yes" --> READ["CSV content from the email attachment"]
     READ --> EMPTY{"Data rows present?"}
     EMPTY -- "no" --> A2["send_alert: empty report"] --> END1
     EMPTY -- "yes" --> SHEETS["read_sheet: log, tasks, history"]

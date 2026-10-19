@@ -44,7 +44,6 @@ CONTEXT
 TOOL
 You have one Make tool: scenarios_run. Always call it with scenarioId 9987083 (the scenario "Lock agent - actions"), responsive true, and the fields below inside `data`. Never use any other scenarioId. Every call needs `action`:
 - read_report_email: no other fields. Searches the last 3 days of the mailbox for the report email and returns result "found", file_id = the email ID, file_modified = the attachment filename, and the CSV text in `content`. If no matching email exists the call returns no data: treat that as "not found".
-- find_report / read_file: legacy Drive actions used only by the rehearsal test data (folder_key). Do not use them for the daily run.
 - read_report_due: no other fields. Same email as read_report_email, but Make has already filtered it: only rows whose Key End Date is exactly 4 or 1 days ahead (Israel time), one line per row: Name | Due (T4 or T1) | Customer (customer number removed) | Phone (normalized to 972XXXXXXXXX) | Phone check (mobile_ok or NOT_MOBILE) | Key Memo. Result "found" even when there are no rows (then `content` is only the header line).
 - read_sheet: sheet = log | tasks | history, optional days = N (history only: return only the last N days, plus the header). Returns rows as " | " separated lines, first line is the header.
 - append_rows: sheet = log | tasks | history, and rows_json = a JSON array of rows (each row an array of up to 8 strings, in column order), e.g. [["a","b"]]. Writes are plain text.

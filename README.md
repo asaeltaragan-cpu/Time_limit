@@ -23,7 +23,7 @@ Claude Managed Agent that manages pre-lock payment notices for Alma Lasers devic
 
 ## How it connects
 
-The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes nine fixed actions: `find_report`, `read_file`, `read_sheet`, `append_rows`, `send_case_email`, `send_alert`, `send_customer_message`, `read_replies`, `check_balance`. SMS goes through MultiSend; during rehearsal Make accepts only the owner's test number. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
+The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes nine fixed actions: `read_report_email`, `read_report_due`, `read_sheet`, `append_rows`, `send_case_email`, `send_alert`, `send_customer_message`, `read_replies`, `check_balance`. SMS goes through MultiSend; during rehearsal Make accepts only the owner's test number. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
 
 ### `test-data/`
 

@@ -129,7 +129,6 @@ def history_table():
 
 def build_live_event(case, today):
     """Real tools (Make), test data only. Dates are YYYY-MM-DD for the tool, DD/MM/YYYY here."""
-    folder_key = {"main": "main", "empty": "empty", "stale": "stale", "abuse": "abuse"}.get(case, "main")
     extra = ""
     if case == "replies":
         with (TEST_DATA / "replies-test.csv").open(encoding="utf-8", newline="") as fh:
@@ -141,8 +140,7 @@ def build_live_event(case, today):
             f"{replies}\n"
         )
     return (
-        f"TEST MODE. Today is {today}. Process today's report. When you call find_report, pass "
-        f'folder_key set to the literal text "{folder_key}" (it is a name, never leave it out). '
+        f"TEST MODE. Today is {today}. Process today's report (read it with read_report_due and read_report_email). "
         "All Sheets and the mailbox are test targets, so write for "
         "real with your tool. SMS is locked in Make to the owner's test number, so notices for other numbers will not be sent."
         f"{extra}"
