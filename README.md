@@ -23,7 +23,7 @@ Claude Managed Agent that manages pre-lock payment notices for Alma Lasers devic
 
 ## How it connects
 
-The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes six fixed actions: `find_report`, `read_file`, `read_sheet`, `append_row`, `send_case_email`, `send_alert`. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
+The agent has one allowed tool, `scenarios_run`, on the Make MCP server. A single Make scenario ("Lock agent - actions") exposes nine fixed actions: `read_report_email`, `read_report_due`, `read_sheet`, `append_rows`, `send_case_email`, `send_alert`, `send_customer_message`, `read_replies`, `check_balance`. The daily NetSuite report arrives by email to the Gmail inbox and is read from there, not from Drive. Recipients, allowed folders, and allowed sheets are fixed inside Make, so the agent can only pass field values. The Make token lives in a vault, never in this repo.
 
 ### `test-data/`
 
@@ -55,6 +55,8 @@ Suspected abuse threshold (assumption, to be tuned): 3 or more grace extensions 
 - No secrets in this repo. Credentials live in a vault and are entered in the Console.
 
 ## Status
+
+20/10/2026: pilot mode in Make. Messages carry "(פיילוט)", recipients are limited to the owner's two phones, the case email goes to `cx.il@almalasers.com` with subject prefix [פיילוט]. Today's report had no customer due in 4 or 1 days, so no pilot message was sent yet. WhatsApp: no confirmed API at Paycall Multisend, still SMS. Not done: production sheets, narrowing the Make token (Make UI), previous-report comparison (step 7 still assumes `find_report`, the email source only exposes the latest report).
 
 Rehearsal in progress, on test data only. Passed live: normal path, bad data, duplicate protection. Dry run only so far: empty and stale report, customer replies and injection, abuse pattern.
 
